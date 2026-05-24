@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/Button';
 
 const autofill = import.meta.env.VITE_DEV_AUTOFILL === 'true';
 const defaultEmail = autofill ? (import.meta.env.VITE_ADMIN_EMAIL ?? '') : '';
-const defaultPassword = autofill ? (import.meta.env.VITE_ADMIN_PASSWORD ?? '') : '';
+const realPassword = autofill ? (import.meta.env.VITE_ADMIN_PASSWORD ?? '') : '';
+const MASK = '••••••••••••••';
 
 export function LoginPage() {
   const { signIn, session, loading } = useAuth();
   const loc = useLocation();
   const [email, setEmail] = useState(defaultEmail);
-  const [password, setPassword] = useState(defaultPassword);
+  const [password, setPassword] = useState(autofill ? MASK : '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,7 +30,8 @@ export function LoginPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await signIn(email, password);
+    const actualPassword = autofill && password === MASK ? realPassword : password;
+    const { error } = await signIn(email, actualPassword);
     setSubmitting(false);
     if (error) setError(error);
   }
@@ -63,6 +65,7 @@ export function LoginPage() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => { if (autofill && password === MASK) setPassword(''); }}
             error={error}
           />
 
